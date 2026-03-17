@@ -1,0 +1,39 @@
+# Environment
+.env
+.env.local
+
+# Go
+*.exe
+*.test
+*.out
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# AlgoKit
+.algokit/
+*.artifacts/
+
+# Build outputs
+/backend/bin/
+/frontend/build/
+
+# PuyaPy compilation outputs (can be regenerated)
+*.puya.map
+
+# Python
+__pycache__/
+*.pyc
+.venv/

@@ -1,0 +1,372 @@
+# Code automatically generated - DO NOT EDIT.
+
+import typing
+
+import algopy as py
+from algopy import subroutine, BigUInt, Bytes, arc4, UInt64, urange
+from algopy.arc4 import UInt256, abimethod, DynamicArray, StaticArray, String
+from algopy.op import bzero, sha256, EllipticCurve as ec, EC
+
+Bytes32: typing.TypeAlias = StaticArray[arc4.Byte, typing.Literal[32]]
+
+#################### Curve parameters ####################
+
+# curve order
+R_MOD = 21888242871839275222246405745257275088548364400416034343698204186575808495617
+
+# field order
+P_MOD = 21888242871839275222246405745257275088696311157297823662689037894645226208583
+
+#################### Trusted setup ####################
+
+G2_SRS_0_X_0 = 11559732032986387107991004021392285783925812861821192530917403151452391805634
+G2_SRS_0_X_1 = 10857046999023057135944570762232829481370756359578518086990519993285655852781
+G2_SRS_0_Y_0 = 4082367875863433681332203403145435568316851327593401208105741076214120093531
+G2_SRS_0_Y_1 = 8495653923123431417604973247489272438418190587263600148770280649306958101930
+
+G2_SRS_1_X_0 = 17231025384763736816414546592865244497437017442647097510447326538965263639101
+G2_SRS_1_X_1 = 21831381940315734285607113342023901060522397560371972897001948545212302161822
+G2_SRS_1_Y_0 = 11507326595632554467052522095592665270651932854513688777769618397986436103170
+G2_SRS_1_Y_1 = 2388026358213174446665280700919698872609886601280537296205114254867301080648
+
+G1_SRS_X = 1
+G1_SRS_Y = 2
+
+######################################################
+
+class Verifier(py.ARC4Contract):
+	@abimethod(create='require')
+	def create(self, name: String) -> None:
+		"""On creation, save application name in global state"""
+		self.app_name = name
+		self.immutable = False
+
+	@abimethod(allow_actions=["UpdateApplication", "DeleteApplication"])
+	def update(self) -> None:
+		"""Creator can update and delete the application if the immutable
+		   property is false."""
+		assert not self.immutable
+		assert py.Global.creator_address == py.Txn.sender
+
+	@abimethod
+	def make_immutable(self) -> None:
+		"""Creator can make the contract immutable."""
+		assert py.Global.creator_address == py.Txn.sender
+		self.immutable = True
+
+	@abimethod
+	def verify(self,
+	           proof: DynamicArray[Bytes32],
+			   public_inputs: DynamicArray[Bytes32],
+			   ) -> arc4.Bool:
+		"""Verify the proof for the given public inputs.
+		   Return a boolean indicating whether the proof is valid"""
+
+		q = BigUInt(R_MOD)
+
+		# check proof and public inputs lengths
+		assert proof.length == 24
+		assert public_inputs.length == 5
+
+		# Read verifying key
+		VK_NB_PUBLIC_INPUTS = UInt64(5)
+		VK_DOMAIN_SIZE = BigUInt(16384)
+		VK_INV_DOMAIN_SIZE = BigUInt(21886906919515554563358329182406612413066885618409173013477031200480436436993)
+		VK_OMEGA = BigUInt(20619701001583904760601357484951574588621083236087856586626117568842480512645)
+
+		VK_QL = Bytes.from_hex("28d9469dce038c185d00ede1d60b63a4c8b8569cd5e3b8bbad1d9a0a689c70691bc728f92bece7af27ec65c42a9a21bad57c8deaba01b1f8a4cfb9baeeb455a6")
+		VK_QR = Bytes.from_hex("2403bbebdee38543847d5f880074e9a738a9a6cf534a0f2f53fe1d151ca65d432e843f584c30e4717d2498581bbe89912a27a20c37909998806c07d2ffded942")
+		VK_QO = Bytes.from_hex("0fd56e250867e5e36f6fdf7284f6eff2b7b0693764ce0cc69fded2aea9ba6897152c0a6abea872790a44e54713784a49271d93be7ac37f0574a556e7372ab99d")
+		VK_QM = Bytes.from_hex("17a078bd866684cccf51f57b9c1831719408f30a30f221748f503826258e74c02f5e16e01fdb92db3f40042eeafc9eda9b0c6016b4d0a471bdf1b720a311ed06")
+		VK_QK = Bytes.from_hex("06f58dfef02971d0aaa74a40579130a93d000f7d18d2fbc61b1b58c27d758b511ef92cb39bdbe4ce6d3c8e6eb24951499157aa8e7d75ea75f19673cb5c61528d")
+
+		VK_S1 = Bytes.from_hex("07ae97a7f18a69d8fca49f50f2c39056e1305d79f3e9bb199a7ffa8463a1c7d30c09c58c0bc499c107f3287555f8b2b878d57085e0d5bb84d4187ff287cd9f67")
+		VK_S2 = Bytes.from_hex("07a4ba0bb3606fce819a36b55e07fb90f2e1177af4bb0420ab71197bb880440d128a9e562809dea6ae00ea4a6876ee392d3ce2e3cdda5a4e34f5b2e4c55e1f9c")
+		VK_S3 = Bytes.from_hex("151cca092f818c52b25c9aa6cbae118e19a43a7644314bc48c8606b41c74c7f909e395e9a98f0107955b53780cdad5139ae08e2359aea690deb05a606ad01311")
+		
+		VK_COSET_SHIFT = BigUInt(5)
+
+		# Read proof #
+		# wires commitments
+		L_COM = proof[0].bytes + proof[1].bytes
+		R_COM = proof[2].bytes + proof[3].bytes
+		O_COM = proof[4].bytes + proof[5].bytes
+
+		# h = h_0 + x^{n+2}h_1 + x^{2(n+2)}h_2
+		H_0 = proof[6].bytes + proof[7].bytes
+		H_1 = proof[8].bytes + proof[9].bytes
+		H_2 = proof[10].bytes + proof[11].bytes
+
+		# wire values at zeta
+		L_AT_Z = proof[12].copy()
+		R_AT_Z = proof[13].copy()
+		O_AT_Z = proof[14].copy()
+
+		S1_AT_Z = proof[15].copy() 						  # s1(zeta)
+		S2_AT_Z = proof[16].copy() 						  # s2(zeta)
+		GRAND_PRODUCT = proof[17].bytes + proof[18].bytes # z(x)
+		GRAND_PRODUCT_AT_Z_OMEGA = proof[19].copy()       # z(w*zeta)
+
+		# Folded proof for opening of linear poly, l, r, o, s1, s2
+		BATCH_OPENING_AT_Z = proof[20].bytes + proof[21].bytes
+		OPENING_AT_Z_OMEGA = proof[22].bytes + proof[23].bytes
+
+		### check proof public inputs are well-formed ###
+		if (BigUInt.from_bytes(L_AT_Z.bytes) >= q
+				or BigUInt.from_bytes(R_AT_Z.bytes) >= q
+				or BigUInt.from_bytes(O_AT_Z.bytes) >= q
+				or BigUInt.from_bytes(S1_AT_Z.bytes) >= q
+				or BigUInt.from_bytes(S2_AT_Z.bytes) >= q
+				or BigUInt.from_bytes(GRAND_PRODUCT_AT_Z_OMEGA.bytes) >= q
+		):
+			return arc4.Bool(False)
+
+		for i in urange(public_inputs.length):
+			if BigUInt.from_bytes(public_inputs[i].bytes) >= q:
+				return arc4.Bool(False)
+
+		### Verify the proof ###
+
+		# Compute the fiat-shamir challenges as the prover (gnark).
+		# After deriving all challenges, we need to make them modulo R_MOD.
+
+		public_inputs_bytes = Bytes(b'')
+		for i in urange(public_inputs.length):
+			public_inputs_bytes += public_inputs[i].bytes
+
+		gamma_pre = sha256(b'gamma' + VK_S1 + VK_S2 + VK_S3 + VK_QL + VK_QR
+			+ VK_QM + VK_QO + VK_QK + public_inputs_bytes + L_COM + R_COM + O_COM)
+		beta_pre = sha256(b'beta' + gamma_pre)
+		alpha_pre = sha256(b'alpha' + beta_pre + GRAND_PRODUCT)
+		zeta_pre = sha256(b'zeta' + alpha_pre + H_0 + H_1 + H_2)
+
+		gamma = curvemod(gamma_pre)
+		beta = curvemod(beta_pre)
+		alpha = curvemod(alpha_pre)
+		zeta = curvemod(zeta_pre)
+
+		# Zz is eval of Xⁿ-1 at zeta
+		Zz = (expmod(zeta, VK_DOMAIN_SIZE, q) + q - BigUInt(1)) % q
+
+		# zn is Zz * 1/n
+		zn = (Zz * VK_INV_DOMAIN_SIZE) % q
+
+		# Let's prepare to interpolate the public inputs
+		w_ = BigUInt(1)
+		batch = DynamicArray[UInt256]()
+		for i in urange(VK_NB_PUBLIC_INPUTS):
+			x = (zeta + q - w_) % q
+			batch.append(UInt256(x))
+			w_ = (w_ * VK_OMEGA) % q
+
+		# Compute batch inversion
+		temp = DynamicArray[UInt256]()
+		prev = BigUInt(1)
+		temp.append(UInt256(prev))
+		for x256 in batch:
+			x = BigUInt.from_bytes(x256.bytes)
+			y = (x * prev) % q
+			temp.append(UInt256(y))
+			prev = y
+		inv = expmod(prev, q - BigUInt(2), q)
+		i = VK_NB_PUBLIC_INPUTS
+		while i > 0:
+			tmp = BigUInt.from_bytes(batch[i-1].bytes)
+			cur = (inv * BigUInt.from_bytes(temp[i-1].bytes)) % q
+			batch[i-1] = UInt256(cur)
+			inv = (inv * tmp) % q
+			i -= 1
+
+		# We can now interpolate the public inputs (PI)
+		w_ = BigUInt(1)
+		for i in urange(VK_NB_PUBLIC_INPUTS):
+			batch[i] = UInt256((w_ * ((BigUInt.from_bytes(batch[i].bytes) * zn)
+								% q)) % q)
+			w_ = (w_ * VK_OMEGA) % q
+
+		tmp = BigUInt(0)
+		PI = BigUInt(0)
+		for i in urange(VK_NB_PUBLIC_INPUTS):
+			tmp = (BigUInt.from_bytes(batch[i].bytes)
+				   * BigUInt.from_bytes(public_inputs[i].bytes)) % q
+			PI = (PI + tmp) % q
+
+		# compute alpha2Lagrange: alpha**2 * (z**n - 1) / (z - 1)
+		res = (zeta + q - BigUInt(1)) % q
+		res = expmod(res, q - BigUInt(2), q)
+		res = (res * zn) % q
+		res = (res * alpha) % q
+		res = (res * alpha) % q
+		alpha2Lagrange = res
+
+		# verify opening linearization polynomial
+		s1 = (BigUInt.from_bytes(S1_AT_Z.bytes) * beta) % q
+		s1 = (s1 + gamma + BigUInt.from_bytes(L_AT_Z.bytes)) % q
+
+		s2 = (BigUInt.from_bytes(S2_AT_Z.bytes) * beta) % q
+		s2 = (s2 + gamma + BigUInt.from_bytes(R_AT_Z.bytes)) % q
+
+		o = (BigUInt.from_bytes(O_AT_Z.bytes) + gamma) % q
+
+		s1 = (s1 * s2) % q
+		s1 = (s1 * o) % q
+		s1 = (s1 * alpha) % q
+		s1 = (s1 * BigUInt.from_bytes(GRAND_PRODUCT_AT_Z_OMEGA.bytes)) % q
+
+		s1 = (s1 + PI + q - alpha2Lagrange)  % q
+		linearized_poly_at_z = (q - s1)
+
+		# compute the folded commitment to H
+		n2 = VK_DOMAIN_SIZE + BigUInt(2)
+		zn2 = expmod(zeta, n2, q)
+		folded_h = ec.scalar_mul(EC.BN254g1, H_2, zn2.bytes)
+		folded_h = ec.add(EC.BN254g1, folded_h, H_1)
+		folded_h = ec.scalar_mul(EC.BN254g1, folded_h, zn2.bytes)
+		folded_h = ec.add(EC.BN254g1, folded_h, H_0)
+		znminus1 = (expmod(zeta, VK_DOMAIN_SIZE, q) + q - BigUInt(1)) % q
+		folded_h = ec.scalar_mul(EC.BN254g1, folded_h, znminus1.bytes)
+		folded_h = invert(folded_h)
+
+		# compute commitment to linearization polynomial
+		u = (BigUInt.from_bytes(GRAND_PRODUCT_AT_Z_OMEGA.bytes) * beta) % q
+		v = (BigUInt.from_bytes(S1_AT_Z.bytes) * beta) % q
+		v = (v + BigUInt.from_bytes(L_AT_Z.bytes) + gamma) % q
+		w  = (BigUInt.from_bytes(S2_AT_Z.bytes) * beta) % q
+		w = (w + BigUInt.from_bytes(R_AT_Z.bytes) + gamma) % q
+
+		s1 = (u * v) % q
+		s1 = (s1 * w) % q
+		s1 = (s1 * alpha) % q
+
+		coset_square = (VK_COSET_SHIFT * VK_COSET_SHIFT) % q
+		betazeta = (beta * zeta) % q
+		u = (betazeta + BigUInt.from_bytes(L_AT_Z.bytes) + gamma) % q
+
+		v = (betazeta * VK_COSET_SHIFT) % q
+		v = (v + BigUInt.from_bytes(R_AT_Z.bytes) + gamma) % q
+
+		w = (betazeta * coset_square) % q
+		w = (w + BigUInt.from_bytes(O_AT_Z.bytes) + gamma) % q
+
+		s2 = (u * v) % q
+		s2 = q - ((s2 * w) % q)
+		s2 = (s2 * alpha + alpha2Lagrange) % q
+
+		lin_poly_com = ec.scalar_mul(EC.BN254g1, VK_QL, L_AT_Z.bytes)
+
+		add_term = ec.scalar_mul(EC.BN254g1, VK_QR, R_AT_Z.bytes)
+		lin_poly_com = ec.add(EC.BN254g1, lin_poly_com, add_term)
+
+		add_term = ec.scalar_mul(EC.BN254g1, VK_QO, O_AT_Z.bytes)
+		lin_poly_com = ec.add(EC.BN254g1, lin_poly_com, add_term)
+
+		ab = (BigUInt.from_bytes(L_AT_Z.bytes) * BigUInt.from_bytes(R_AT_Z.bytes)) % q
+		add_term = ec.scalar_mul(EC.BN254g1, VK_QM, ab.bytes)
+		lin_poly_com = ec.add(EC.BN254g1, lin_poly_com, add_term)
+		lin_poly_com = ec.add(EC.BN254g1, lin_poly_com, VK_QK)
+
+		add_term = ec.scalar_mul(EC.BN254g1, VK_S3, s1.bytes)
+		lin_poly_com = ec.add(EC.BN254g1, lin_poly_com, add_term)
+
+		add_term = ec.scalar_mul(EC.BN254g1, GRAND_PRODUCT, s2.bytes)
+		lin_poly_com = ec.add(EC.BN254g1, lin_poly_com, add_term)
+
+		lin_poly_com = ec.add(EC.BN254g1, lin_poly_com, folded_h)
+
+		# generate challenge to fold the opening proofs
+		linearized_poly_at_z_bytes = bzero(32) | linearized_poly_at_z.bytes
+		r_pre = sha256(b'gamma' + UInt256(zeta).bytes + lin_poly_com
+			 + L_COM + R_COM + O_COM + VK_S1 + VK_S2 + linearized_poly_at_z_bytes
+			 + L_AT_Z.bytes + R_AT_Z.bytes + O_AT_Z.bytes + S1_AT_Z.bytes
+			 + S2_AT_Z.bytes + GRAND_PRODUCT_AT_Z_OMEGA.bytes)
+		r = curvemod(r_pre)
+		r_acc = r
+
+		# fold the proof in one point
+		digest = lin_poly_com
+		claims = linearized_poly_at_z
+
+		add_term = ec.scalar_mul(EC.BN254g1, L_COM, r_acc.bytes)
+		digest = ec.add(EC.BN254g1, digest, add_term)
+		claims = (claims + (BigUInt.from_bytes(L_AT_Z.bytes) * r_acc)) % q
+
+		r_acc = (r_acc * r) % q
+		add_term = ec.scalar_mul(EC.BN254g1, R_COM, r_acc.bytes)
+		digest = ec.add(EC.BN254g1, digest, add_term)
+		claims = (claims + (BigUInt.from_bytes(R_AT_Z.bytes) * r_acc)) % q
+
+		r_acc = (r_acc * r) % q
+		add_term = ec.scalar_mul(EC.BN254g1, O_COM, r_acc.bytes)
+		digest = ec.add(EC.BN254g1, digest, add_term)
+		claims = (claims + (BigUInt.from_bytes(O_AT_Z.bytes) * r_acc)) % q
+
+		r_acc = (r_acc * r) % q
+		add_term = ec.scalar_mul(EC.BN254g1, VK_S1, r_acc.bytes)
+		digest = ec.add(EC.BN254g1, digest, add_term)
+		claims = (claims + (BigUInt.from_bytes(S1_AT_Z.bytes) * r_acc)) % q
+
+		r_acc = (r_acc * r) % q
+		add_term = ec.scalar_mul(EC.BN254g1, VK_S2, r_acc.bytes)
+		digest = ec.add(EC.BN254g1, digest, add_term)
+		claims = (claims + (BigUInt.from_bytes(S2_AT_Z.bytes) * r_acc)) % q
+
+		# verify the folded proof
+		r_pre = sha256(digest + BATCH_OPENING_AT_Z + GRAND_PRODUCT + OPENING_AT_Z_OMEGA + UInt256(zeta).bytes + UInt256(r).bytes)
+		r = curvemod(r_pre)
+
+		quotient = BATCH_OPENING_AT_Z
+		add_term = ec.scalar_mul(EC.BN254g1, OPENING_AT_Z_OMEGA, r.bytes)
+		quotient = ec.add(EC.BN254g1, quotient, add_term)
+
+		add_term = ec.scalar_mul(EC.BN254g1, GRAND_PRODUCT, r.bytes)
+		digest = ec.add(EC.BN254g1, digest, add_term)
+
+		claims = (claims + (BigUInt.from_bytes(GRAND_PRODUCT_AT_Z_OMEGA.bytes)
+	       		  * r)) % q
+		G1_SRS = UInt256(G1_SRS_X).bytes + UInt256(G1_SRS_Y).bytes
+		claims_com = ec.scalar_mul(EC.BN254g1, G1_SRS, claims.bytes)
+
+		digest = ec.add(EC.BN254g1, digest, invert(claims_com))
+
+		points_quotient = ec.scalar_mul(EC.BN254g1, BATCH_OPENING_AT_Z, zeta.bytes)
+
+		zeta_omega = (zeta * VK_OMEGA) % q
+		r = (r * zeta_omega) % q
+		add_term = ec.scalar_mul(EC.BN254g1, OPENING_AT_Z_OMEGA, r.bytes)
+		points_quotient = ec.add(EC.BN254g1, points_quotient, add_term)
+
+		digest = ec.add(EC.BN254g1, digest, points_quotient)
+		quotient = invert(quotient)
+
+		g2 = (UInt256(G2_SRS_0_X_1).bytes + UInt256(G2_SRS_0_X_0).bytes
+		   + UInt256(G2_SRS_0_Y_1).bytes + UInt256(G2_SRS_0_Y_0).bytes
+		   + UInt256(G2_SRS_1_X_1).bytes + UInt256(G2_SRS_1_X_0).bytes
+		   + UInt256(G2_SRS_1_Y_1).bytes + UInt256(G2_SRS_1_Y_0).bytes)
+
+		check = ec.pairing_check(EC.BN254g1, digest + quotient, g2)
+		return arc4.Bool(check)
+
+
+@subroutine
+def expmod(base: BigUInt, exponent: BigUInt, modulus: BigUInt) -> BigUInt:
+	"""Compute base^exponent % modulus."""
+	result = BigUInt(1)
+	while exponent > 0:
+		if exponent % 2 == 1:
+			result = (result * base) % modulus
+		exponent = exponent // 2
+		base = (base * base) % modulus
+	return result
+
+@subroutine
+def curvemod(x: Bytes) -> BigUInt:
+	"""Compute x % R_MOD."""
+	return BigUInt.from_bytes(x) % BigUInt(R_MOD)
+
+@subroutine
+def invert(p : Bytes) -> Bytes:
+	"""Invert a point on the curve."""
+	x = BigUInt.from_bytes(p[:32])
+	y = BigUInt.from_bytes(p[32:])
+	neg_y = BigUInt(P_MOD) - y
+	return x.bytes + UInt256(neg_y).bytes
