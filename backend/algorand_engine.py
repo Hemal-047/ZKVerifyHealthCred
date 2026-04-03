@@ -90,6 +90,15 @@ class AlgorandEngine:
         if env_path is None:
             env_path = Path(__file__).parent.parent / ".env"
 
+        # Check OS environment variables first (for Render/cloud deployment)
+        if os.environ.get("ALGORAND_MNEMONIC"):
+            self.env = {
+                "ALGORAND_MNEMONIC": os.environ["ALGORAND_MNEMONIC"],
+                "VERIFIER_APP_ID": os.environ.get("VERIFIER_APP_ID", "757273463"),
+            }
+        else:
+            self.env = self._load_env(env_path)
+
         # Check OS environment variables first (for Render deployment)
         import os as _os
         if _os.environ.get("ALGORAND_MNEMONIC"):
