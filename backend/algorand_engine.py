@@ -90,7 +90,6 @@ class AlgorandEngine:
         if env_path is None:
             env_path = Path(__file__).parent.parent / ".env"
 
-        # Check OS environment variables first (for Render/cloud deployment)
         if os.environ.get("ALGORAND_MNEMONIC"):
             self.env = {
                 "ALGORAND_MNEMONIC": os.environ["ALGORAND_MNEMONIC"],
@@ -99,17 +98,6 @@ class AlgorandEngine:
         else:
             self.env = self._load_env(env_path)
 
-        # Check OS environment variables first (for Render deployment)
-        import os as _os
-        if _os.environ.get("ALGORAND_MNEMONIC"):
-            self.env = {
-                "ALGORAND_MNEMONIC": _os.environ["ALGORAND_MNEMONIC"],
-                "VERIFIER_APP_ID": _os.environ.get("VERIFIER_APP_ID", "757273463"),
-            }
-        else:
-            self.env = self._load_env(env_path)    
-
-        self.env = self._load_env(env_path)
         mn = self.env.get("ALGORAND_MNEMONIC", "")
         if not mn:
             raise ValueError("ALGORAND_MNEMONIC not found in .env")
@@ -118,6 +106,10 @@ class AlgorandEngine:
         self.address = account.address_from_private_key(self.private_key)
         self.client = algod.AlgodClient(ALGOD_TOKEN, ALGOD_URL)
         self.signer = AccountTransactionSigner(self.private_key)
+
+        self.verifier_app_id = int(self.env.get("VERIFIER_APP_ID", "0"))
+        self.consents = []
+        self.credential_counter = 0   
 
         # Verifier app ID (deployed smart contract — for reference/explorer link)
         self.verifier_app_id = int(self.env.get("VERIFIER_APP_ID", "0"))
