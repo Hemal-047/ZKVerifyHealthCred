@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getConsentHistory, revokeConsent, CREDENTIAL_TYPES } from '../services/api';
+import { getConsentHistory, revokeConsent, CREDENTIAL_FIELDS } from '../services/api';
 
 export default function ConsentLog() {
   const [consents, setConsents] = useState([]);
@@ -85,7 +85,7 @@ export default function ConsentLog() {
 
               <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '12px' }}>
                 <strong>Credentials shared:</strong>{' '}
-                {consent.credential_types?.map(t => CREDENTIAL_TYPES[t]?.label || t).join(', ')}
+                {consent.credential_types?.map(t => CREDENTIAL_FIELDS[t]?.label || t).join(', ')}
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
