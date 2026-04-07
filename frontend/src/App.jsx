@@ -4,6 +4,7 @@ import { healthCheck, isLoggedIn, getStoredUser, logout, login, register } from 
 import PatientDashboard from './pages/PatientDashboard';
 import VerifierDashboard from './pages/VerifierDashboard';
 import ConsentLog from './pages/ConsentLog';
+import ArchitectureDiagram from './pages/ArchitectureDiagram';
 
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
@@ -97,6 +98,7 @@ function NavBar() {
     { path: '/', label: 'My Health' },
     { path: '/verify', label: 'Verify' },
     { path: '/consent', label: 'My Consents' },
+    { path: '/how-it-works', label: 'How It Works' },
   ];
 
   return (
@@ -170,6 +172,17 @@ export default function App() {
                 )
               } />
               <Route path="/consent" element={<ProtectedRoute><ConsentLog /></ProtectedRoute>} />
+              <Route path="/how-it-works" element={
+                user ? <ArchitectureDiagram /> : (
+                  <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
+                      <span style={{ fontSize: '22px' }}>{'\u{1F6E1}\uFE0F'}</span>
+                      <span style={{ fontSize: '18px', fontWeight: '700', color: '#111827' }}>zkHealthCred</span>
+                    </div>
+                    <ArchitectureDiagram />
+                  </div>
+                )
+              } />
             </Routes>
           </main>
           {user && (

@@ -120,26 +120,57 @@ def generate_all_proofs():
 
 @app.route("/api/credential/<credential_id>", methods=["GET"])
 def get_credential(credential_id):
+    """Look up a credential from the blockchain."""
     eng = get_engine()
-    for c in eng.consents:
-        if c["credential_id"] == credential_id:
-            return jsonify({"credential_id": credential_id, "verifier_id": c["verifier_id"], "credential_types": c["credential_types"], "status": c["status"], "tx_id": c["tx_id"], "explorer_url": c.get("explorer_url"), "created_at": c["created_at"], "verifier_app_id": eng.verifier_app_id, "verifier_explorer_url": f"https://lora.algokit.io/testnet/application/{eng.verifier_app_id}", "results": [{"credential_type": ct, "label": CREDENTIAL_CONFIGS[ct]["label"], "result_label": CREDENTIAL_CONFIGS[ct]["pass_label"], "verified": True} for ct in c["credential_types"]]})
+    consent = eng.get_credential_from_chain(credential_id)
+    if consent:
+        return jsonify({
+            "credential_id": credential_id,
+            "verifier_id": consent.get("verifier_id", ""),
+            "credential_types": consent.get("credential_types", []),
+            "status": consent.get("status", ""),
+            "tx_id": consent.get("tx_id", ""),
+            "explorer_url": consent.get("explorer_url", ""),
+            "created_at": consent.get("created_at", ""),
+            "verifier_app_id": eng.verifier_app_id,
+            "verifier_explorer_url": f"https://lora.algokit.io/testnet/application/{eng.verifier_app_id}",
+            "results": [
+                {
+                    "credential_type": r.get("type", ct),
+                    "label": CREDENTIAL_CONFIGS.get(r.get("type", ct), {}).get("label", ct),
+                    "result_label": CREDENTIAL_CONFIGS.get(r.get("type", ct), {}).get("pass_label" if r.get("passed", True) else "fail_label", ""),
+                    "verified": r.get("passed", True),
+                }
+                for r, ct in zip(consent.get("results", []), consent.get("credential_types", []))
+            ] if consent.get("results") else [
+                {
+                    "credential_type": ct,
+                    "label": CREDENTIAL_CONFIGS.get(ct, {}).get("label", ct),
+                    "result_label": CREDENTIAL_CONFIGS.get(ct, {}).get("pass_label", "Verified"),
+                    "verified": True,
+                }
+                for ct in consent.get("credential_types", [])
+            ],
+        })
     return jsonify({"error": "Credential not found"}), 404
 
 @app.route("/api/consent/history", methods=["GET"])
 def get_consent_history():
+    """Read consent history directly from Algorand blockchain."""
     eng = get_engine()
     email, user = get_current_user()
-    if email and user:
-        history = eng.get_consent_history(user["user_hash"])
-    else:
-        history = eng.get_consent_history()
+    user_hash = user["user_hash"] if user else None
+    history = eng.get_consent_history_from_chain(user_hash)
     return jsonify({"history": history})
 
 @app.route("/api/consent/revoke/<consent_id>", methods=["POST"])
 def revoke_consent(consent_id):
+    """Revoke a consent — logs revocation on Algorand."""
     eng = get_engine()
-    result = eng.revoke_consent(consent_id)
+    email, user = get_current_user()
+    if not user:
+        return jsonify({"error": "Must be logged in to revoke"}), 401
+    result = eng.revoke_consent_on_chain(consent_id, user["user_hash"])
     if result:
         return jsonify({"status": "revoked", "consent": result})
     return jsonify({"error": "Consent not found or already revoked"}), 404
@@ -149,6 +180,9 @@ if __name__ == "__main__":
     try:
         eng = get_engine()
         print(f"Account: {eng.address} | Balance: {eng.get_balance()} ALGO | Verifier: {eng.verifier_app_id}")
+        # Test reading from chain
+        history = eng.get_consent_history_from_chain()
+        print(f"Found {len(history)} consents on Algorand blockchain")
     except Exception as e:
         print(f"Warning: {e}")
     port = int(os.environ.get("PORT", 5000))
