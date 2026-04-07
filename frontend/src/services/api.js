@@ -64,7 +64,7 @@ export async function generateAllProofs(credentials, verifierId) {
 }
 
 export async function getCredential(credentialId) {
-  const res = await fetch(`${API_BASE}/api/credential/${credentialId}`, { headers: authHeaders() });
+  const res = await fetch(`${API_BASE}/api/credential/${credentialId}`);
   if (!res.ok) throw new Error('Credential not found');
   return res.json();
 }
@@ -82,36 +82,37 @@ export async function revokeConsent(consentId) {
   return res.json();
 }
 
-export const CREDENTIAL_TYPES = {
+// No threshold info exposed to frontend — backend determines pass/fail
+export const CREDENTIAL_FIELDS = {
   blood_pressure: {
-    label: 'Blood Pressure', icon: '\u{1FAC0}',
+    label: 'Blood Pressure',
+    icon: '\u{1FAC0}',
     fields: [
-      { key: 'value1', label: 'Systolic', placeholder: '125' },
-      { key: 'value2', label: 'Diastolic', placeholder: '82' },
+      { key: 'value1', label: 'Systolic (mmHg)', placeholder: '125' },
+      { key: 'value2', label: 'Diastolic (mmHg)', placeholder: '82' },
     ],
-    threshold: 'Systolic 60-140, Diastolic 40-90 mmHg',
   },
   blood_sugar: {
-    label: 'Fasting Blood Sugar', icon: '\u{1FA78}',
+    label: 'Fasting Blood Sugar',
+    icon: '\u{1FA78}',
     fields: [{ key: 'value1', label: 'Glucose (mg/dL)', placeholder: '92' }],
-    threshold: '70-100 mg/dL',
   },
   bmi: {
-    label: 'BMI', icon: '\u2696\uFE0F',
+    label: 'BMI',
+    icon: '\u2696\uFE0F',
     fields: [
       { key: 'height', label: 'Height (cm)', placeholder: '175' },
       { key: 'weight', label: 'Weight (kg)', placeholder: '72' },
     ],
-    threshold: '18.5 - 24.9',
   },
   cholesterol: {
-    label: 'Total Cholesterol', icon: '\u{1F9EA}',
-    fields: [{ key: 'value1', label: 'Cholesterol (mg/dL)', placeholder: '185' }],
-    threshold: '100-200 mg/dL',
+    label: 'Total Cholesterol',
+    icon: '\u{1F9EA}',
+    fields: [{ key: 'value1', label: 'Total Cholesterol (mg/dL)', placeholder: '185' }],
   },
   report_recency: {
-    label: 'Report Recency', icon: '\u{1F4C5}',
+    label: 'Report Recency',
+    icon: '\u{1F4C5}',
     fields: [{ key: 'date', label: 'Report Date', placeholder: '', type: 'date' }],
-    threshold: 'Within last 90 days',
   },
 };
