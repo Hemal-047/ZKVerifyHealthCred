@@ -1,41 +1,82 @@
-// zkHealthCred API Client
-// Communicates with the Python Flask backend
-
 const API_BASE = import.meta.env.VITE_API_URL || '';
+
+function getToken() {
+  return localStorage.getItem('zkh_token');
+}
+
+function authHeaders() {
+  const token = getToken();
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return headers;
+}
+
+export async function register(email, password, name) {
+  const res = await fetch(`${API_BASE}/api/auth/register`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, name }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error);
+  localStorage.setItem('zkh_token', data.token);
+  localStorage.setItem('zkh_user', JSON.stringify({ email: data.email, name: data.name }));
+  return data;
+}
+
+export async function login(email, password) {
+  const res = await fetch(`${API_BASE}/api/auth/login`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error);
+  localStorage.setItem('zkh_token', data.token);
+  localStorage.setItem('zkh_user', JSON.stringify({ email: data.email, name: data.name }));
+  return data;
+}
+
+export function logout() {
+  localStorage.removeItem('zkh_token');
+  localStorage.removeItem('zkh_user');
+}
+
+export function getStoredUser() {
+  const u = localStorage.getItem('zkh_user');
+  return u ? JSON.parse(u) : null;
+}
+
+export function isLoggedIn() {
+  return !!getToken();
+}
 
 export async function healthCheck() {
   const res = await fetch(`${API_BASE}/api/health`);
   return res.json();
 }
 
-export async function generateAllProofs(credentials, userHash, verifierId) {
+export async function generateAllProofs(credentials, verifierId) {
   const res = await fetch(`${API_BASE}/api/proof/generate-all`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      credentials,
-      user_hash: userHash,
-      verifier_id: verifierId || 'Demo Verifier',
-    }),
+    method: 'POST', headers: authHeaders(),
+    body: JSON.stringify({ credentials, verifier_id: verifierId || 'Demo Verifier' }),
   });
   if (!res.ok) throw new Error((await res.json()).error || 'Failed');
   return res.json();
 }
 
 export async function getCredential(credentialId) {
-  const res = await fetch(`${API_BASE}/api/credential/${credentialId}`);
+  const res = await fetch(`${API_BASE}/api/credential/${credentialId}`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Credential not found');
   return res.json();
 }
 
 export async function getConsentHistory() {
-  const res = await fetch(`${API_BASE}/api/consent/history`);
+  const res = await fetch(`${API_BASE}/api/consent/history`, { headers: authHeaders() });
   return res.json();
 }
 
 export async function revokeConsent(consentId) {
   const res = await fetch(`${API_BASE}/api/consent/revoke/${consentId}`, {
-    method: 'POST',
+    method: 'POST', headers: authHeaders(),
   });
   if (!res.ok) throw new Error('Failed to revoke');
   return res.json();
