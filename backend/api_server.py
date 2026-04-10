@@ -91,7 +91,7 @@ def generate_all_proofs():
     data = request.json
     eng = get_engine()
     credentials = data.get("credentials", [])
-    verifier_id = data.get("verifier_id", "Demo Verifier")
+    verifier_id = data.get("verifier_id", "zkHealthCred Verifier")
     if not credentials:
         return jsonify({"error": "No credentials provided"}), 400
     email, user = get_current_user()

@@ -148,8 +148,8 @@ class AlgorandEngine:
         return tx_id
 
     def generate_credential_bundle(self, credentials, user_hash, verifier_id="demo"):
-        self.credential_counter += 1
-        credential_id = f"HS-{self.credential_counter:04d}"
+        import random
+        credential_id = f"HS-{random.randint(1000, 9999)}-{int(time.time()) % 10000}"
 
         results = []
         results_summary = []

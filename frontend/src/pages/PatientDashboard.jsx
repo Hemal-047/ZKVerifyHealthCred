@@ -32,7 +32,7 @@ export default function PatientDashboard() {
           Object.entries(vals).map(([k, v]) => [k, k === 'date' ? v : Number(v) || 0])
         ),
       }));
-      const result = await generateAllProofs(credentials, 'Demo Verifier');
+      const result = await generateAllProofs(credentials);
       setBundle(result);
     } catch (e) {
       setError(e.message);
@@ -160,7 +160,14 @@ export default function PatientDashboard() {
               />
               <button
                 onClick={() => {
-                  navigator.clipboard?.writeText(`${window.location.origin}/verify?id=${bundle.credential_id}`);
+                  const url = `${window.location.origin}/verify?id=${bundle.credential_id}`;
+                  if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url).then(() => alert('Link copied!')).catch(() => {
+                      window.prompt('Copy this link:', url);
+                    });
+                  } else {
+                    window.prompt('Copy this link:', url);
+                  }
                 }}
                 style={{ padding: '8px 14px', background: '#1d4ed8', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '13px', cursor: 'pointer', whiteSpace: 'nowrap' }}
               >
