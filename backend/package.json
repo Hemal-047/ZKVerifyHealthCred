@@ -1,0 +1,19 @@
+{
+  "name": "zkhealthcred-zkverify-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "zkHealthCred backend ported to zkVerify with Express, snarkjs, and optional zkVerify relayer/sdk integration.",
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "circomlib": "latest",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "snarkjs": "^0.7.5",
+    "zkverifyjs": "latest"
+  }
+}

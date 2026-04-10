@@ -17,7 +17,9 @@ export default function ConsentLog() {
     }
   };
 
-  useEffect(() => { fetchHistory(); }, []);
+  useEffect(() => {
+    fetchHistory();
+  }, []);
 
   const handleRevoke = async (consentId) => {
     setRevoking(consentId);
@@ -38,8 +40,7 @@ export default function ConsentLog() {
           Consent History
         </h1>
         <p style={{ color: '#6b7280', margin: 0 }}>
-          View all verification consents you've granted. Revoke any consent at any time —
-          the revocation is recorded immutably on Algorand.
+          View all verification consents you've granted. Revoke any consent at any time and the verification link will stop working immediately.
         </p>
       </div>
 
@@ -52,7 +53,7 @@ export default function ConsentLog() {
           textAlign: 'center', padding: '48px', color: '#9ca3af',
           background: '#f9fafb', borderRadius: '12px', border: '1px dashed #e5e7eb',
         }}>
-          <div style={{ fontSize: '48px', marginBottom: '12px' }}>📋</div>
+          <div style={{ fontSize: '48px', marginBottom: '12px' }}>{'\u{1F4CB}'}</div>
           <p>No consent records yet.</p>
           <p style={{ fontSize: '13px' }}>
             Generate credentials from the Patient Dashboard to create your first consent record.
@@ -60,7 +61,7 @@ export default function ConsentLog() {
         </div>
       ) : (
         <div style={{ display: 'grid', gap: '16px' }}>
-          {consents.map(consent => (
+          {consents.map((consent) => (
             <div key={consent.consent_id} style={{
               background: '#fff', borderRadius: '12px', padding: '20px',
               border: `1px solid ${consent.status === 'active' ? '#bbf7d0' : '#fecaca'}`,
@@ -68,7 +69,7 @@ export default function ConsentLog() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                 <div>
                   <div style={{ fontSize: '16px', fontWeight: '600', color: '#111827' }}>
-                    {consent.credential_id} — {consent.verifier_id}
+                    {consent.credential_id} - {consent.verifier_id}
                   </div>
                   <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '2px' }}>
                     {new Date(consent.created_at).toLocaleString()}
@@ -85,28 +86,28 @@ export default function ConsentLog() {
 
               <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '12px' }}>
                 <strong>Credentials shared:</strong>{' '}
-                {consent.credential_types?.map(t => CREDENTIAL_FIELDS[t]?.label || t).join(', ')}
+                {consent.credential_types?.map((t) => CREDENTIAL_FIELDS[t]?.label || t).join(', ')}
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', gap: '12px' }}>
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                   {consent.tx_id && (
-                    <a
-                      href={consent.explorer_url}
-                      target="_blank" rel="noopener noreferrer"
-                      style={{ fontSize: '13px', color: '#1d4ed8' }}
-                    >
-                      Consent Tx ↗
-                    </a>
+                    consent.explorer_url ? (
+                      <a href={consent.explorer_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '13px', color: '#1d4ed8' }}>
+                        zkVerify Receipt
+                      </a>
+                    ) : (
+                      <span style={{ fontSize: '13px', color: '#374151', fontFamily: 'monospace' }}>{consent.tx_id}</span>
+                    )
                   )}
                   {consent.revoke_tx_id && (
-                    <a
-                      href={`https://lora.algokit.io/testnet/transaction/${consent.revoke_tx_id}`}
-                      target="_blank" rel="noopener noreferrer"
-                      style={{ fontSize: '13px', color: '#991b1b' }}
-                    >
-                      Revocation Tx ↗
-                    </a>
+                    consent.revoke_explorer_url ? (
+                      <a href={consent.revoke_explorer_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '13px', color: '#991b1b' }}>
+                        Revocation Receipt
+                      </a>
+                    ) : (
+                      <span style={{ fontSize: '13px', color: '#991b1b', fontFamily: 'monospace' }}>{consent.revoke_tx_id}</span>
+                    )
                   )}
                 </div>
 
@@ -140,9 +141,7 @@ export default function ConsentLog() {
         marginTop: '24px', padding: '12px 16px', background: '#fefce8',
         border: '1px solid #fde68a', borderRadius: '8px', fontSize: '13px', color: '#92400e',
       }}>
-        <strong>DPDP Act Section 12 — Right to Erasure:</strong> You can revoke any consent at any time.
-        Revocations are recorded immutably on Algorand TestNet. Once revoked, verifiers can no longer
-        access your credential verification status.
+        <strong>DPDP Act Section 12 - Right to Erasure:</strong> You can revoke any consent at any time. Once revoked, verifiers can no longer access your credential verification status.
       </div>
     </div>
   );

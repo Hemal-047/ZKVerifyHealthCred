@@ -57,7 +57,7 @@ export async function healthCheck() {
 export async function generateAllProofs(credentials, verifierId) {
   const res = await fetch(`${API_BASE}/api/proof/generate-all`, {
     method: 'POST', headers: authHeaders(),
-    body: JSON.stringify({ credentials, verifier_id: verifierId || 'Demo Verifier' }),
+    body: JSON.stringify({ credentials, verifier_id: verifierId || 'zkVerify Demo Verifier' }),
   });
   if (!res.ok) throw new Error((await res.json()).error || 'Failed');
   return res.json();

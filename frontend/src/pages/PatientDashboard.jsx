@@ -16,8 +16,7 @@ export default function PatientDashboard() {
   const [error, setError] = useState(null);
 
   const updateValue = (type, key, val) => {
-    setValues(prev => ({ ...prev, [type]: { ...prev[type], [key]: val } }));
-    // Clear old results when user changes any value
+    setValues((prev) => ({ ...prev, [type]: { ...prev[type], [key]: val } }));
     if (bundle) setBundle(null);
   };
 
@@ -28,9 +27,7 @@ export default function PatientDashboard() {
     try {
       const credentials = Object.entries(values).map(([type, vals]) => ({
         type,
-        ...Object.fromEntries(
-          Object.entries(vals).map(([k, v]) => [k, k === 'date' ? v : Number(v) || 0])
-        ),
+        ...Object.fromEntries(Object.entries(vals).map(([k, v]) => [k, k === 'date' ? v : Number(v) || 0])),
       }));
       const result = await generateAllProofs(credentials);
       setBundle(result);
@@ -48,6 +45,8 @@ export default function PatientDashboard() {
     return null;
   };
 
+  const receiptLabel = bundle?.consent?.source === 'local-ledger' ? 'Consent Receipt' : 'zkVerify Attestation';
+
   return (
     <div>
       <div style={{ marginBottom: '24px' }}>
@@ -55,13 +54,13 @@ export default function PatientDashboard() {
           Welcome, {user?.name || 'User'}
         </h1>
         <p style={{ color: '#6b7280', margin: 0, fontSize: '14px' }}>
-          Enter your health data and generate zero-knowledge proofs. The backend verifies if values are within acceptable medical ranges — you only see pass/fail, and so does the verifier. Actual values are never shared.
+          Enter your health data and generate zero-knowledge proofs. The verifier only sees pass/fail status, never the underlying numbers.
         </p>
       </div>
 
       <div style={{ display: 'grid', gap: '16px', marginBottom: '24px' }}>
         {Object.entries(CREDENTIAL_FIELDS).map(([type, config]) => {
-          const result = bundle?.results?.find(r => r.credential_type === type);
+          const result = bundle?.results?.find((item) => item.credential_type === type);
           return (
             <div key={type} style={{
               background: '#fff', borderRadius: '12px', padding: '20px',
@@ -79,14 +78,14 @@ export default function PatientDashboard() {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '12px' }}>
-                {config.fields.map(field => (
+                {config.fields.map((field) => (
                   <div key={field.key} style={{ flex: 1 }}>
                     <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>{field.label}</label>
                     <input
                       type={field.type || 'number'}
                       placeholder={field.placeholder}
                       value={values[type]?.[field.key] || ''}
-                      onChange={e => updateValue(type, field.key, e.target.value)}
+                      onChange={(e) => updateValue(type, field.key, e.target.value)}
                       style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
                     />
                   </div>
@@ -99,7 +98,7 @@ export default function PatientDashboard() {
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 }}>
                   <span style={{ color: result.in_range ? '#166534' : '#991b1b', fontWeight: '600', fontSize: '14px' }}>
-                    {result.in_range ? '\u2705' : '\u274C'} {result.result_label} — ZK Verified
+                    {result.in_range ? '\u2705' : '\u274C'} {result.result_label} - {result.proof_mode === 'groth16' ? 'Groth16 proof ready' : 'ZK checked'}
                   </span>
                   <span style={{ fontSize: '12px', color: '#9ca3af', background: 'rgba(0,0,0,0.04)', padding: '2px 8px', borderRadius: '4px' }}>
                     Actual value: HIDDEN
@@ -116,7 +115,7 @@ export default function PatientDashboard() {
         color: '#fff', border: 'none', borderRadius: '10px', fontSize: '16px', fontWeight: '600',
         cursor: loading ? 'not-allowed' : 'pointer',
       }}>
-        {loading ? 'Generating ZK Proofs & Logging on Algorand...' : 'Generate All ZK Proofs'}
+        {loading ? 'Generating proofs and preparing zkVerify receipt...' : 'Generate All ZK Proofs'}
       </button>
 
       {error && (
@@ -139,29 +138,37 @@ export default function PatientDashboard() {
           </p>
           {bundle.consent?.tx_id && (
             <p style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#374151' }}>
-              Consent Tx:{' '}
-              <a href={bundle.consent.explorer_url} target="_blank" rel="noopener noreferrer" style={{ color: '#1d4ed8' }}>
-                {bundle.consent.tx_id.substring(0, 16)}... (View on Algorand)
-              </a>
+              {receiptLabel}:{' '}
+              {bundle.consent.explorer_url ? (
+                <a href={bundle.consent.explorer_url} target="_blank" rel="noopener noreferrer" style={{ color: '#1d4ed8' }}>
+                  {bundle.consent.tx_id.substring(0, 16)}... (View on zkVerify Explorer)
+                </a>
+              ) : (
+                <span style={{ fontFamily: 'monospace' }}>{bundle.consent.tx_id}</span>
+              )}
+            </p>
+          )}
+          {bundle.zkverify?.mode === 'demo' && (
+            <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#92400e' }}>
+              Demo mode is active. Add circuit artifacts plus a zkVerify seed phrase or relayer API key to submit real attestations.
             </p>
           )}
 
-          {/* Shareable link section */}
           <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(0,0,0,0.03)', borderRadius: '8px' }}>
             <p style={{ margin: '0 0 4px 0', fontSize: '13px', fontWeight: '600', color: '#374151' }}>
-              Share with your verifier (insurance, employer, etc.):
+              Share with your verifier:
             </p>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <input
                 readOnly
                 value={`${window.location.origin}/verify?id=${bundle.credential_id}`}
                 style={{ flex: 1, padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
-                onClick={e => { e.target.select(); navigator.clipboard?.writeText(e.target.value); }}
+                onClick={(e) => { e.target.select(); navigator.clipboard?.writeText(e.target.value); }}
               />
               <button
                 onClick={() => {
                   const url = `${window.location.origin}/verify?id=${bundle.credential_id}`;
-                  if (navigator.clipboard && navigator.clipboard.writeText) {
+                  if (navigator.clipboard?.writeText) {
                     navigator.clipboard.writeText(url).then(() => alert('Link copied!')).catch(() => {
                       window.prompt('Copy this link:', url);
                     });
@@ -175,14 +182,14 @@ export default function PatientDashboard() {
               </button>
             </div>
             <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#9ca3af' }}>
-              Anyone with this link can verify your credentials — they will only see pass/fail status, never your actual values.
+              Anyone with this link can verify your credentials. They will only see pass/fail status.
             </p>
           </div>
         </div>
       )}
 
       <div style={{ marginTop: '24px', padding: '12px 16px', background: '#fefce8', border: '1px solid #fde68a', borderRadius: '8px', fontSize: '13px', color: '#92400e' }}>
-        <strong>DPDP Act Compliant:</strong> Your health values stay on this page. Only ZK proofs (pass/fail) are logged on Algorand. Revoke consent anytime from the Consent Log.
+        <strong>DPDP Act Compliant:</strong> Your health values stay on this page. Only pass/fail proof results and consent receipts leave the form.
       </div>
     </div>
   );
