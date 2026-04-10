@@ -1,0 +1,29 @@
+<svg width="1200" height="780" viewBox="0 0 1200 780" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="780" rx="28" fill="#F8FAFC"/>
+  <text x="60" y="88" fill="#0F172A" font-family="Arial, sans-serif" font-size="38" font-weight="700">Verifier View</text>
+  <text x="60" y="126" fill="#475569" font-family="Arial, sans-serif" font-size="20">A verifier sees only eligibility outcomes and receipt metadata.</text>
+
+  <rect x="60" y="168" width="820" height="68" rx="22" fill="#FFFFFF" stroke="#CBD5E1"/>
+  <text x="92" y="212" fill="#64748B" font-family="Arial, sans-serif" font-size="22">Enter Credential ID</text>
+  <rect x="908" y="168" width="232" height="68" rx="22" fill="#1D4ED8"/>
+  <text x="989" y="212" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="24" font-weight="700">Verify</text>
+
+  <rect x="60" y="280" width="1080" height="378" rx="28" fill="#FFFFFF" stroke="#BBF7D0" stroke-width="2"/>
+  <rect x="60" y="280" width="1080" height="86" rx="28" fill="#F0FDF4"/>
+  <text x="92" y="332" fill="#166534" font-family="Arial, sans-serif" font-size="30" font-weight="700">Credential ZKHV-7D2A-91F - Verification Passed</text>
+
+  <rect x="92" y="404" width="1016" height="64" rx="18" fill="#F8FAFC"/>
+  <text x="122" y="444" fill="#0F172A" font-family="Arial, sans-serif" font-size="24" font-weight="700">Blood Pressure</text>
+  <text x="920" y="444" fill="#166534" font-family="Arial, sans-serif" font-size="22" font-weight="700">PASS - Normal</text>
+
+  <rect x="92" y="486" width="1016" height="64" rx="18" fill="#F8FAFC"/>
+  <text x="122" y="526" fill="#0F172A" font-family="Arial, sans-serif" font-size="24" font-weight="700">Blood Sugar</text>
+  <text x="884" y="526" fill="#166534" font-family="Arial, sans-serif" font-size="22" font-weight="700">PASS - In Range</text>
+
+  <rect x="92" y="568" width="1016" height="64" rx="18" fill="#F8FAFC"/>
+  <text x="122" y="608" fill="#0F172A" font-family="Arial, sans-serif" font-size="24" font-weight="700">Receipt</text>
+  <text x="791" y="608" fill="#1D4ED8" font-family="Arial, sans-serif" font-size="22" font-weight="700">View zkVerify Explorer</text>
+
+  <rect x="60" y="684" width="1080" height="48" rx="16" fill="#FEF3C7"/>
+  <text x="90" y="715" fill="#92400E" font-family="Arial, sans-serif" font-size="18" font-weight="700">No raw health values are shown anywhere in the verifier experience.</text>
+</svg>

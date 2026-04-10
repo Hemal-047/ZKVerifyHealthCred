@@ -1,0 +1,29 @@
+<svg width="1200" height="780" viewBox="0 0 1200 780" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="780" rx="28" fill="#F8FAFC"/>
+  <text x="60" y="88" fill="#0F172A" font-family="Arial, sans-serif" font-size="38" font-weight="700">Consent Log</text>
+  <text x="60" y="126" fill="#475569" font-family="Arial, sans-serif" font-size="20">Patients can review every verification and revoke access later.</text>
+
+  <rect x="60" y="176" width="1080" height="150" rx="24" fill="#FFFFFF" stroke="#BBF7D0" stroke-width="2"/>
+  <text x="94" y="228" fill="#0F172A" font-family="Arial, sans-serif" font-size="28" font-weight="700">ZKHV-7D2A-91F - Demo Insurer</text>
+  <text x="94" y="266" fill="#64748B" font-family="Arial, sans-serif" font-size="20">Blood Pressure, Blood Sugar, BMI</text>
+  <rect x="936" y="204" width="128" height="38" rx="19" fill="#DCFCE7"/>
+  <text x="973" y="229" fill="#166534" font-family="Arial, sans-serif" font-size="18" font-weight="700">Active</text>
+  <rect x="892" y="262" width="172" height="42" rx="14" fill="#FEE2E2"/>
+  <text x="928" y="289" fill="#991B1B" font-family="Arial, sans-serif" font-size="18" font-weight="700">Revoke Consent</text>
+
+  <rect x="60" y="350" width="1080" height="150" rx="24" fill="#FFFFFF" stroke="#FECACA" stroke-width="2"/>
+  <text x="94" y="402" fill="#0F172A" font-family="Arial, sans-serif" font-size="28" font-weight="700">ZKHV-4BC2-33E - Wellness Partner</text>
+  <text x="94" y="440" fill="#64748B" font-family="Arial, sans-serif" font-size="20">Cholesterol, Report Recency</text>
+  <rect x="924" y="378" width="140" height="38" rx="19" fill="#FEE2E2"/>
+  <text x="955" y="403" fill="#991B1B" font-family="Arial, sans-serif" font-size="18" font-weight="700">Revoked</text>
+  <text x="858" y="454" fill="#991B1B" font-family="Arial, sans-serif" font-size="18" font-weight="700">Verifier access disabled</text>
+
+  <rect x="60" y="540" width="1080" height="150" rx="24" fill="#FFFFFF" stroke="#E2E8F0"/>
+  <text x="94" y="592" fill="#0F172A" font-family="Arial, sans-serif" font-size="28" font-weight="700">Receipt History</text>
+  <rect x="94" y="620" width="238" height="30" rx="15" fill="#DBEAFE"/>
+  <rect x="352" y="620" width="238" height="30" rx="15" fill="#E2E8F0"/>
+  <rect x="610" y="620" width="238" height="30" rx="15" fill="#FEE2E2"/>
+  <text x="116" y="641" fill="#1D4ED8" font-family="Arial, sans-serif" font-size="16" font-weight="700">Verification receipt</text>
+  <text x="385" y="641" fill="#475569" font-family="Arial, sans-serif" font-size="16" font-weight="700">Consent event</text>
+  <text x="665" y="641" fill="#991B1B" font-family="Arial, sans-serif" font-size="16" font-weight="700">Revocation event</text>
+</svg>
