@@ -3,7 +3,8 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD_DIR="$ROOT_DIR/circuits/build"
-PTAU_FILE="$ROOT_DIR/circuits/powersOfTau28_hez_final_14.ptau"
+PTAU_INITIAL="$ROOT_DIR/circuits/pot12_0000.ptau"
+PTAU_FINAL="$ROOT_DIR/circuits/pot12_final.ptau"
 
 mkdir -p "$BUILD_DIR"
 
@@ -21,14 +22,13 @@ fi
 echo "Compiling Circom circuit..."
 circom circuits/healthrange.circom --r1cs --wasm --sym -l backend/node_modules -o circuits/build
 
-if [ ! -f "$PTAU_FILE" ]; then
-  echo "Downloading powers of tau file..."
-  curl -L https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_14.ptau -o "$PTAU_FILE"
-fi
+echo "Creating local Powers of Tau ceremony..."
+npx snarkjs powersoftau new bn128 12 circuits/pot12_0000.ptau -v
+npx snarkjs powersoftau prepare phase2 circuits/pot12_0000.ptau circuits/pot12_final.ptau
 
 echo "Running Groth16 setup..."
-npx snarkjs groth16 setup circuits/build/healthrange.r1cs "$PTAU_FILE" circuits/circuit_0000.zkey
-echo "zkHealthCred zkVerify demo contribution" | npx snarkjs zkey contribute circuits/circuit_0000.zkey circuits/circuit_final.zkey --name="zkHealthCred zkVerify" -v
+npx snarkjs groth16 setup circuits/build/healthrange.r1cs "$PTAU_FINAL" circuits/circuit_0000.zkey
+cp circuits/circuit_0000.zkey circuits/circuit_final.zkey
 npx snarkjs zkey export verificationkey circuits/circuit_final.zkey circuits/verification_key.json
 
 echo "Circuit artifacts ready in circuits/."
