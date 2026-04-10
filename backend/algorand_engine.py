@@ -200,89 +200,95 @@ class AlgorandEngine:
     def get_consent_history_from_chain(self, user_hash=None):
         """Read consent history directly from Algorand blockchain via indexer."""
         try:
-            # Search for all transactions from our account with note prefix
+            # Fetch all payment transactions from our account (sent to self = consent/revocation logs)
             search_result = self.indexer_client.search_transactions(
                 address=self.address,
-                note_prefix=base64.b64encode(b'{"type":"zkHealthCred_consent"').decode(),
-                limit=50,
+                address_role="sender",
+                txn_type="pay",
+                limit=100,
             )
 
-            # Also get revocations
-            revocation_result = self.indexer_client.search_transactions(
-                address=self.address,
-                note_prefix=base64.b64encode(b'{"type":"zkHealthCred_revocation"').decode(),
-                limit=50,
-            )
+            all_txns = search_result.get("transactions", [])
 
-            # Parse revocations into a set of revoked tx_ids
+            # Separate consents and revocations by parsing note fields
+            consents = []
             revoked_tx_ids = set()
             revocation_map = {}
-            for txn in revocation_result.get("transactions", []):
+
+            for txn in all_txns:
                 note_b64 = txn.get("note", "")
+                if not note_b64:
+                    continue
                 try:
                     note_bytes = base64.b64decode(note_b64)
                     note_data = json.loads(note_bytes)
-                    if note_data.get("type") == "zkHealthCred_revocation":
-                        original_tx = note_data.get("original_tx_id", "")
-                        revoked_tx_ids.add(original_tx)
-                        revocation_map[original_tx] = {
-                            "revoke_tx_id": txn["id"],
-                            "revoked_at": datetime.utcfromtimestamp(
-                                note_data.get("timestamp", 0)
-                            ).isoformat() + "Z",
-                        }
                 except Exception:
                     continue
 
-            # Parse consent transactions
-            consents = []
-            for txn in search_result.get("transactions", []):
-                note_b64 = txn.get("note", "")
-                try:
-                    note_bytes = base64.b64decode(note_b64)
-                    note_data = json.loads(note_bytes)
-                    if note_data.get("type") != "zkHealthCred_consent":
-                        continue
+                tx_id = txn.get("id", "")
 
-                    tx_id = txn["id"]
-                    consent_user_hash = note_data.get("user_hash", "")
-
-                    # Filter by user_hash if provided
-                    if user_hash and consent_user_hash != user_hash:
-                        continue
-
-                    is_revoked = tx_id in revoked_tx_ids
-                    revoke_info = revocation_map.get(tx_id, {})
-
-                    consent = {
-                        "consent_id": note_data.get("credential_id", ""),
-                        "credential_id": note_data.get("credential_id", ""),
-                        "user_hash": consent_user_hash,
-                        "verifier_id": note_data.get("verifier_id", ""),
-                        "credential_types": note_data.get("credential_types", []),
-                        "results": note_data.get("results", []),
-                        "status": "revoked" if is_revoked else "active",
-                        "tx_id": tx_id,
-                        "explorer_url": f"https://lora.algokit.io/testnet/transaction/{tx_id}",
-                        "created_at": datetime.utcfromtimestamp(
+                if note_data.get("type") == "zkHealthCred_revocation":
+                    original_tx = note_data.get("original_tx_id", "")
+                    revoked_tx_ids.add(original_tx)
+                    revocation_map[original_tx] = {
+                        "revoke_tx_id": tx_id,
+                        "revoked_at": datetime.utcfromtimestamp(
                             note_data.get("timestamp", 0)
                         ).isoformat() + "Z",
                     }
 
-                    if is_revoked:
-                        consent["revoke_tx_id"] = revoke_info.get("revoke_tx_id")
-                        consent["revoked_at"] = revoke_info.get("revoked_at")
-
-                    consents.append(consent)
+            # Second pass: build consent records
+            for txn in all_txns:
+                note_b64 = txn.get("note", "")
+                if not note_b64:
+                    continue
+                try:
+                    note_bytes = base64.b64decode(note_b64)
+                    note_data = json.loads(note_bytes)
                 except Exception:
                     continue
 
-            # Sort by timestamp descending (newest first)
+                if note_data.get("type") != "zkHealthCred_consent":
+                    continue
+
+                tx_id = txn.get("id", "")
+                consent_user_hash = note_data.get("user_hash", "")
+
+                # Filter by user_hash if provided
+                if user_hash and consent_user_hash != user_hash:
+                    continue
+
+                is_revoked = tx_id in revoked_tx_ids
+                revoke_info = revocation_map.get(tx_id, {})
+
+                consent = {
+                    "consent_id": note_data.get("credential_id", ""),
+                    "credential_id": note_data.get("credential_id", ""),
+                    "user_hash": consent_user_hash,
+                    "verifier_id": note_data.get("verifier_id", ""),
+                    "credential_types": note_data.get("credential_types", []),
+                    "results": note_data.get("results", []),
+                    "status": "revoked" if is_revoked else "active",
+                    "tx_id": tx_id,
+                    "explorer_url": f"https://lora.algokit.io/testnet/transaction/{tx_id}",
+                    "created_at": datetime.utcfromtimestamp(
+                        note_data.get("timestamp", 0)
+                    ).isoformat() + "Z",
+                }
+
+                if is_revoked:
+                    consent["revoke_tx_id"] = revoke_info.get("revoke_tx_id")
+                    consent["revoked_at"] = revoke_info.get("revoked_at")
+
+                consents.append(consent)
+
             consents.sort(key=lambda c: c.get("created_at", ""), reverse=True)
             return consents
 
         except Exception as e:
             print(f"Warning: Failed to read consent history from chain: {e}")
+            import traceback
+            traceback.print_exc()
             return []
 
     def get_credential_from_chain(self, credential_id):
