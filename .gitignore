@@ -44,5 +44,6 @@ backend/data/
 # Local tool helpers and ceremony intermediates
 .tools/
 circuits/pot12_0000.ptau
+circuits/pot12_0001.ptau
 circuits/pot12_final.ptau
 circuits/circuit_0000.zkey
